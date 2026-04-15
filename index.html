@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alien Cuisine Rush</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #00ff88;
+      --green-dim: #00cc66;
+      --purple: #9b59ff;
+      --purple-dim: #6a3db8;
+      --bg-deep: #04060f;
+      --bg-card: rgba(10, 14, 30, 0.88);
+      --bg-card2: rgba(15, 20, 42, 0.92);
+      --border: rgba(0, 255, 136, 0.18);
+      --border-bright: rgba(0, 255, 136, 0.45);
+      --text: #d4e8d0;
+      --text-dim: #7aad8a;
+      --text-muted: #3d6b4f;
+    }
+
+    @keyframes float {
+      0%,100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-18px) rotate(4deg); }
+    }
+    @keyframes floatB {
+      0%,100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-12px) rotate(-5deg); }
+    }
+    @keyframes pulse-glow {
+      0%,100% { box-shadow: 0 0 18px rgba(0,255,136,0.25); }
+      50% { box-shadow: 0 0 40px rgba(0,255,136,0.55), 0 0 80px rgba(155,89,255,0.2); }
+    }
+    @keyframes scan {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 100px; }
+    }
+    @keyframes beamRotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes twinkle {
+      0%,100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: var(--bg-deep);
+      background-image: url("background.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* Star field overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 72%, rgba(0,255,136,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 42% 34%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 88%, rgba(155,89,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 78% 21%, rgba(255,255,255,0.8) 0%, transparent 100%),
+        radial-gradient(1px 1px at 88% 56%, rgba(0,255,136,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 5%  90%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 50% 50%, rgba(155,89,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 33% 5%,  rgba(255,255,255,0.9) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 40%, rgba(0,255,136,0.6) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+      animation: twinkle 4s ease-in-out infinite;
+    }
+
+    /* Dark overlay so bg image doesn't overpower text */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 4, 12, 0.62);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── FLYING SAUCERS ── */
+    .saucer-wrap {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .saucer-wrap:nth-child(1) { top: 12%; left: -120px; animation: saucerFly1 22s linear infinite; }
+    .saucer-wrap:nth-child(2) { top: 45%; right: -120px; animation: saucerFly2 30s linear infinite; }
+    .saucer-wrap:nth-child(3) { bottom: 20%; left: -100px; animation: saucerFly3 26s linear infinite; }
+
+    @keyframes saucerFly1 {
+      0%   { transform: translateX(0) translateY(0); }
+      50%  { transform: translateX(calc(100vw + 240px)) translateY(30px); }
+      50.001% { transform: translateX(calc(100vw + 240px)) translateY(30px) scaleX(-1); }
+      100% { transform: translateX(0) translateY(0) scaleX(-1); }
+    }
+    @keyframes saucerFly2 {
+      0%   { transform: translateX(0) translateY(0) scaleX(-1); }
+      50%  { transform: translateX(calc(-100vw - 240px)) translateY(-20px) scaleX(-1); }
+      50.001% { transform: translateX(calc(-100vw - 240px)) translateY(-20px) scaleX(1); }
+      100% { transform: translateX(0) translateY(0) scaleX(1); }
+    }
+    @keyframes saucerFly3 {
+      0%   { transform: translateX(0) translateY(0); }
+      50%  { transform: translateX(calc(100vw + 200px)) translateY(-40px); }
+      50.001% { transform: translateX(calc(100vw + 200px)) translateY(-40px) scaleX(-1); }
+      100% { transform: translateX(0) translateY(0) scaleX(-1); }
+    }
+
+    .saucer {
+      width: 90px;
+      height: 50px;
+      position: relative;
+    }
+    /* Beam */
+    .saucer::after {
+      content: '';
+      position: absolute;
+      bottom: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 30px solid rgba(0,255,136,0.22);
+    }
+    .saucer-body {
+      position: relative;
+      width: 90px;
+      height: 32px;
+      background: linear-gradient(180deg, #3a4a6a 0%, #1a2240 60%, #0d1428 100%);
+      border-radius: 50%;
+      border: 1.5px solid rgba(0,255,136,0.5);
+      overflow: hidden;
+    }
+    .saucer-body::before {
+      content: '';
+      position: absolute;
+      top: 4px; left: 8px;
+      width: 40%;
+      height: 35%;
+      background: rgba(255,255,255,0.07);
+      border-radius: 50%;
+    }
+    .saucer-dome {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 26px;
+      background: rgba(0,255,136,0.12);
+      border: 1.5px solid rgba(0,255,136,0.4);
+      border-radius: 50% 50% 0 0;
+    }
+    .saucer-lights {
+      position: absolute;
+      bottom: 5px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .saucer-light {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      animation: twinkle 1.2s ease-in-out infinite;
+    }
+    .saucer-light:nth-child(1) { background: #00ff88; animation-delay: 0s; }
+    .saucer-light:nth-child(2) { background: #ff6b35; animation-delay: 0.3s; }
+    .saucer-light:nth-child(3) { background: #9b59ff; animation-delay: 0.6s; }
+    .saucer-light:nth-child(4) { background: #00ccff; animation-delay: 0.9s; }
+    .saucer-light:nth-child(5) { background: #ffdd00; animation-delay: 0.15s; }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      z-index: 2;
+      padding: 70px 20px 50px;
+      text-align: center;
+      border-bottom: 1px solid var(--border-bright);
+      background: linear-gradient(180deg, rgba(0,30,15,0.7) 0%, rgba(2,4,12,0.3) 100%);
+      overflow: hidden;
+    }
+
+    .header-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(0,255,136,0.08);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .header-ring:nth-child(1) { width: 300px; height: 300px; }
+    .header-ring:nth-child(2) { width: 500px; height: 500px; border-color: rgba(155,89,255,0.06); }
+    .header-ring:nth-child(3) { width: 700px; height: 700px; }
+
+    .game-genre-badge {
+      display: inline-block;
+      background: rgba(0,255,136,0.08);
+      border: 1px solid rgba(0,255,136,0.35);
+      color: var(--green);
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 5px 16px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      font-size: clamp(2.2rem, 7vw, 4.5rem);
+      font-weight: 900;
+      letter-spacing: -1px;
+      color: #ffffff;
+      text-shadow: 0 0 40px rgba(0,255,136,0.4), 0 0 80px rgba(155,89,255,0.2);
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header-subtitle {
+      color: var(--text-dim);
+      font-size: 1rem;
+      margin-bottom: 6px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header-meta {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .meta-chip {
+      background: rgba(0,255,136,0.05);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-size: 0.82rem;
+      color: var(--text);
+      animation: pulse-glow 4s ease-in-out infinite;
+    }
+    .meta-chip:nth-child(2) { animation-delay: 1s; }
+    .meta-chip:nth-child(3) { animation-delay: 2s; }
+    .meta-chip:nth-child(4) { animation-delay: 3s; }
+
+    .meta-chip strong {
+      color: var(--green);
+      display: block;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 3px;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(4, 8, 20, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+    }
+    nav::-webkit-scrollbar { height: 3px; background: transparent; }
+    nav::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+
+    nav a {
+      color: var(--text-dim);
+      text-decoration: none;
+      padding: 14px 16px;
+      font-size: 0.82rem;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      letter-spacing: 0.5px;
+    }
+    nav a:hover {
+      color: var(--green);
+      border-bottom-color: var(--green);
+    }
+
+    /* ── MAIN ── */
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 40px 20px 100px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ── SECTION CARDS ── */
+    .section-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 34px 38px;
+      margin-bottom: 28px;
+      backdrop-filter: blur(8px);
+      animation: slideIn 0.5s ease both;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .section-card:hover {
+      border-color: var(--border-bright);
+      box-shadow: 0 4px 40px rgba(0,255,136,0.06);
+    }
+
+    .section-card h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 22px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-number {
+      background: rgba(0,255,136,0.1);
+      color: var(--green);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 6px;
+      letter-spacing: 1px;
+      border: 1px solid rgba(0,255,136,0.2);
+    }
+
+    .section-card p { color: var(--text); line-height: 1.75; margin-bottom: 14px; }
+    .section-card p:last-child { margin-bottom: 0; }
+
+    /* ── INFO GRID ── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .info-box {
+      background: rgba(0,255,136,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      transition: border-color 0.2s;
+    }
+    .info-box:hover { border-color: var(--border-bright); }
+
+    .info-box .label {
+      font-size: 0.67rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+    .info-box .value {
+      font-size: 0.92rem;
+      color: #e8f8e8;
+      font-weight: 600;
+    }
+
+    /* ── GAME IMAGE ── */
+    .game-image {
+      width: 100%;
+      max-width: 700px;
+      display: block;
+      margin: 24px auto 0;
+      border-radius: 14px;
+      border: 1px solid var(--border-bright);
+      box-shadow: 0 0 40px rgba(0,255,136,0.15);
+    }
+
+    /* ── CONTROLS ── */
+    .control-list { list-style: none; margin-top: 10px; }
+    .control-list li {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 11px 0;
+      border-bottom: 1px solid rgba(0,255,136,0.07);
+      color: var(--text);
+      font-size: 0.92rem;
+    }
+    .control-list li:last-child { border-bottom: none; }
+
+    .key-badge {
+      background: rgba(0,255,136,0.07);
+      border: 1px solid rgba(0,255,136,0.3);
+      border-radius: 7px;
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      color: var(--green);
+      white-space: nowrap;
+      font-family: 'Courier New', monospace;
+      flex-shrink: 0;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    /* ── VAR TABLE ── */
+    .var-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 0.88rem;
+    }
+    .var-table th {
+      text-align: left;
+      color: var(--text-muted);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .var-table td {
+      padding: 11px 14px;
+      color: var(--text);
+      border-bottom: 1px solid rgba(0,255,136,0.06);
+    }
+    .var-table tr:last-child td { border-bottom: none; }
+    .var-table td:first-child {
+      color: var(--green);
+      font-family: 'Courier New', monospace;
+      font-size: 0.88rem;
+    }
+    .var-table tr:hover td { background: rgba(0,255,136,0.03); }
+
+    /* ── RULE LIST ── */
+    .rule-list { list-style: none; margin-top: 12px; }
+    .rule-list li {
+      background: rgba(0,255,136,0.03);
+      border-left: 3px solid var(--green-dim);
+      border-radius: 0 8px 8px 0;
+      padding: 11px 16px;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    .rule-list li:hover { background: rgba(0,255,136,0.07); }
+    .if-word { color: var(--purple); font-weight: 700; }
+    .then-word { color: var(--green); font-weight: 700; }
+
+    /* ── LOOP STEPS ── */
+    .loop-steps {
+      list-style: none;
+      counter-reset: step-counter;
+      margin-top: 14px;
+    }
+    .loop-steps li {
+      counter-increment: step-counter;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 13px 0;
+      border-bottom: 1px solid rgba(0,255,136,0.07);
+      color: var(--text);
+      font-size: 0.92rem;
+    }
+    .loop-steps li:last-child { border-bottom: none; }
+    .loop-steps li::before {
+      content: counter(step-counter);
+      background: rgba(0,255,136,0.12);
+      color: var(--green);
+      font-weight: 700;
+      font-size: 0.78rem;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,255,136,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ── FLOWCHART ── */
+    .flowchart {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .flow-box {
+      background: rgba(0,255,136,0.05);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 26px;
+      text-align: center;
+      color: var(--text);
+      font-size: 0.88rem;
+      min-width: 210px;
+      max-width: 340px;
+      transition: border-color 0.2s;
+    }
+    .flow-box:hover { border-color: var(--border-bright); }
+    .flow-box.decision {
+      background: rgba(155,89,255,0.1);
+      border-color: rgba(155,89,255,0.4);
+      color: #c8aaff;
+    }
+    .flow-box.start-end {
+      background: rgba(0,255,136,0.1);
+      border-color: rgba(0,255,136,0.5);
+      color: var(--green);
+      border-radius: 30px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .flow-arrow { color: var(--green-dim); font-size: 1.3rem; line-height: 1.2; padding: 3px 0; }
+    .flow-branch {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 4px 0;
+    }
+    .flow-branch-item { display: flex; flex-direction: column; align-items: center; gap: 0; }
+    .flow-branch-label { font-size: 0.73rem; color: var(--text-muted); margin-bottom: 4px; }
+
+    /* ── CHANGE BLOCK ── */
+    .change-block {
+      background: rgba(0,255,136,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin-bottom: 14px;
+    }
+    .problem-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #ff8855;
+      margin-bottom: 7px;
+    }
+    .fix-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--green);
+      margin-top: 14px;
+      margin-bottom: 7px;
+    }
+    .change-block p { font-size: 0.9rem; }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 32px 20px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      background: rgba(4,8,20,0.6);
+      letter-spacing: 0.5px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .section-card { padding: 22px 18px; }
+      header { padding: 50px 16px 36px; }
+      .flow-branch { gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Flying Saucers -->
+  <div class="saucer-wrap">
+    <div class="saucer">
+      <div class="saucer-dome"></div>
+      <div class="saucer-body">
+        <div class="saucer-lights">
+          <div class="saucer-light"></div>
+          <div class="saucer-light"></div>
+          <div class="saucer-light"></div>
+          <div class="saucer-light"></div>
+          <div class="saucer-light"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="saucer-wrap">
+    <div class="saucer" style="width:70px; height:40px;">
+      <div class="saucer-dome" style="width:30px; height:20px;"></div>
+      <div class="saucer-body" style="width:70px; height:26px;">
+        <div class="saucer-lights">
+          <div class="saucer-light"></div>
+          <div class="saucer-light"></div>
+          <div class="saucer-light"></div>
+          <div class="saucer-light"></div>
+          <div class="saucer-light"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="saucer-wrap">
+    <div class="saucer" style="width:110px; height:60px;">
+      <div class="saucer-dome" style="width:50px; height:32px;"></div>
+      <div class="saucer-body" style="width:110px; height:40px;">
+        <div class="saucer-lights">
+          <div class="saucer-light"></div>
+          <div class="saucer-light"></div>
+          <div class="saucer-light"></div>
+          <div class="saucer-light"></div>
+          <div class="saucer-light"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="header-ring"></div>
+    <div class="header-ring"></div>
+    <div class="header-ring"></div>
+
+    <div class="game-genre-badge">&#x1F6F8; Digital Game</div>
+    <h1>Alien Cuisine Rush</h1>
+    <p class="header-subtitle">By DJ, Chadin, Elijah &nbsp;&bull;&nbsp; Period 3</p>
+
+    <div class="header-meta">
+      <div class="meta-chip"><strong>Platform</strong>Xbox · PlayStation · PC</div>
+      <div class="meta-chip"><strong>Genre</strong>Cooking Minigame</div>
+      <div class="meta-chip"><strong>Audience</strong>E for Everyone</div>
+      <div class="meta-chip"><strong>Engine</strong>Unity</div>
+    </div>
+  </header>
+
+  <!-- Nav -->
+  <nav>
+    <a href="#overview">Overview</a>
+    <a href="#goal">Goal</a>
+    <a href="#controls">Controls</a>
+    <a href="#mechanics">Mechanics</a>
+    <a href="#loop">Game Loop</a>
+    <a href="#playtesting">Playtesting</a>
+    <a href="#flowchart">Flowchart</a>
+    <a href="#reflection">Reflection</a>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+
+    <!-- 01 OVERVIEW -->
+    <section class="section-card" id="overview">
+      <h2><span class="section-number">01</span> Game Overview</h2>
+      <p>
+        Alien Cuisine Rush follows four brave astronaut chefs on a mission — to feed the galaxy.
+        Venturing to unknown planets, they gather exotic alien ingredients and set up their cosmic
+        restaurant at the most popular alien hotspots in the universe!
+      </p>
+      <p>
+        On open days, the crew cooks and serves famished aliens desperate for a slice of
+        Klumvorian pizza or a sought-after Blumferfish burger. On closing days, the heroes
+        scour even more distant worlds for the rarest ingredients in the cosmos.
+      </p>
+
+      <div class="info-grid">
+        <div class="info-box"><div class="label">Game Type</div><div class="value">2D Digital Game</div></div>
+        <div class="info-box"><div class="label">Platform</div><div class="value">Xbox / PlayStation / PC</div></div>
+        <div class="info-box"><div class="label">Target Audience</div><div class="value">Everyone (E)</div></div>
+        <div class="info-box"><div class="label">Engine / Tools</div><div class="value">Unity</div></div>
+      </div>
+
+      <img src="preview.png" alt="Alien Cuisine Rush game preview" class="game-image">
+    </section>
+
+    <!-- 02 GOAL -->
+    <section class="section-card" id="goal">
+      <h2><span class="section-number">02</span> Game Goal</h2>
+      <p>Cook and serve food to alien customers before the timer runs out. Each correct order earns points — but mess up too many times and the restaurant closes for good!</p>
+
+      <div class="info-grid">
+        <div class="info-box">
+          <div class="label">&#10003; Win Condition</div>
+          <div class="value">Serve all aliens and earn the highest score before time runs out.</div>
+        </div>
+        <div class="info-box">
+          <div class="label">&#10007; Lose Condition</div>
+          <div class="value">Make 3 mistakes (wrong orders or slow service) and lose all health.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 CONTROLS -->
+    <section class="section-card" id="controls">
+      <h2><span class="section-number">03</span> Player Controls</h2>
+      <ul class="control-list">
+        <li><span class="key-badge">&#8592; Left Arrow</span> Move player left</li>
+        <li><span class="key-badge">&#8594; Right Arrow</span> Move player right</li>
+        <li><span class="key-badge">&#8593; Up Arrow</span> Move player forward / up</li>
+        <li><span class="key-badge">&#8595; Down Arrow</span> Move player backward / down</li>
+        <li><span class="key-badge">Space</span> Interact / pick up item</li>
+        <li><span class="key-badge">E</span> Serve food to alien customer</li>
+        <li><span class="key-badge">Esc / Start</span> Pause game</li>
+      </ul>
+    </section>
+
+    <!-- 04 MECHANICS -->
+    <section class="section-card" id="mechanics">
+      <h2><span class="section-number">04</span> Game Mechanics &amp; Logic</h2>
+
+      <p><strong>Main Actions:</strong></p>
+      <ul style="color:var(--text); margin: 8px 0 22px 22px; line-height:2.2;">
+        <li>Gather exotic ingredients from around the map</li>
+        <li>Prep and cook alien dishes at the kitchen station</li>
+        <li>Serve completed meals to waiting alien customers</li>
+        <li>Manage time across multiple orders at once</li>
+      </ul>
+
+      <p style="margin-bottom:10px;"><strong>Variables:</strong></p>
+      <table class="var-table">
+        <thead>
+          <tr>
+            <th>Variable Name</th>
+            <th>Starting Value</th>
+            <th>What It Does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>score</td><td>0</td><td>Tracks total points earned from serving aliens</td></tr>
+          <tr><td>health</td><td>3</td><td>Number of mistakes allowed before game over</td></tr>
+          <tr><td>timeRemaining</td><td>60 seconds</td><td>Countdown timer for the current serving shift</td></tr>
+          <tr><td>aliensServed</td><td>0</td><td>Counts how many alien customers have been fed</td></tr>
+          <tr><td>currentOrder</td><td>null</td><td>Stores which dish the current alien wants</td></tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top:26px; margin-bottom:10px;"><strong>If / Then Rules:</strong></p>
+      <ul class="rule-list">
+        <li><span class="if-word">If</span> the player cooks the food correctly &rarr; <span class="then-word">add 10 points to score</span></li>
+        <li><span class="if-word">If</span> the player serves the food to the alien in time &rarr; <span class="then-word">add 15 bonus points</span></li>
+        <li><span class="if-word">If</span> the player takes too long or cooks the food wrong &rarr; <span class="then-word">lose 1 health</span></li>
+        <li><span class="if-word">If</span> health equals 0 &rarr; <span class="then-word">the game ends immediately (lose)</span></li>
+        <li><span class="if-word">If</span> timeRemaining equals 0 &rarr; <span class="then-word">check score — win or lose based on goal</span></li>
+        <li><span class="if-word">If</span> all aliens are served &rarr; <span class="then-word">the player wins the level</span></li>
+      </ul>
+    </section>
+
+    <!-- 05 GAME LOOP -->
+    <section class="section-card" id="loop">
+      <h2><span class="section-number">05</span> Game Loop</h2>
+      <p>These steps repeat continuously while the game is running:</p>
+      <ol class="loop-steps">
+        <li>Check for player input — did the player press a key or button?</li>
+        <li>Move the player character based on the input received</li>
+        <li>Check if a new alien customer has appeared with an order</li>
+        <li>Player collects ingredients and prepares the requested dish</li>
+        <li>Player serves the completed dish to the waiting alien</li>
+        <li>Update score, health, and aliensServed based on the result</li>
+        <li>Check win and loss conditions (health = 0, time = 0, all served)</li>
+        <li>Repeat until the game ends</li>
+      </ol>
+    </section>
+
+    <!-- 06 PLAYTESTING -->
+    <section class="section-card" id="playtesting">
+      <h2><span class="section-number">06</span> Playtesting &amp; Changes</h2>
+      <p>Changes made after testing the game with real players:</p>
+
+      <div class="change-block">
+        <div class="problem-label">&#9888; Problem Found</div>
+        <p>Players said the game was too easy — they could serve all aliens without losing any health.</p>
+        <div class="fix-label">&#10003; Changes Made</div>
+        <p>Added more alien customers per round and introduced a faster difficulty mode. Alien patience timers now decrease as the level progresses.</p>
+      </div>
+
+      <div class="change-block">
+        <div class="problem-label">&#9888; Problem Found</div>
+        <p>It wasn't clear which dish each alien wanted — players kept guessing wrong.</p>
+        <div class="fix-label">&#10003; Changes Made</div>
+        <p>Added a visual speech bubble above each alien showing a picture of their desired food item.</p>
+      </div>
+    </section>
+
+    <!-- 07 FLOWCHART -->
+    <section class="section-card" id="flowchart">
+      <h2><span class="section-number">07</span> Logic Flowchart</h2>
+      <p>This diagram shows how the game logic flows from start to finish:</p>
+
+      <div class="flowchart">
+        <div class="flow-box start-end">&#x1F680; Start Game</div>
+        <div class="flow-arrow">&#8595;</div>
+
+        <div class="flow-box">Set score = 0, health = 3, time = 60, aliensServed = 0</div>
+        <div class="flow-arrow">&#8595;</div>
+
+        <div class="flow-box decision">Player collecting supplies?</div>
+        <div class="flow-arrow">&#8595;</div>
+
+        <div class="flow-box">Move player &amp; start prepping food at kitchen</div>
+        <div class="flow-arrow">&#8595;</div>
+
+        <div class="flow-box decision">Food prepared correctly &amp; in time?</div>
+        <div class="flow-arrow">&#8595;</div>
+
+        <div class="flow-branch">
+          <div class="flow-branch-item">
+            <div class="flow-branch-label">Yes</div>
+            <div class="flow-box">+10 points to score</div>
+          </div>
+          <div class="flow-branch-item">
+            <div class="flow-branch-label">No</div>
+            <div class="flow-box">Warning issued</div>
+          </div>
+        </div>
+        <div class="flow-arrow">&#8595;</div>
+
+        <div class="flow-box decision">Alien served in time?</div>
+        <div class="flow-arrow">&#8595;</div>
+
+        <div class="flow-branch">
+          <div class="flow-branch-item">
+            <div class="flow-branch-label">Yes</div>
+            <div class="flow-box">+15 bonus points</div>
+          </div>
+          <div class="flow-branch-item">
+            <div class="flow-branch-label">No</div>
+            <div class="flow-box">&#8722;1 health</div>
+          </div>
+        </div>
+        <div class="flow-arrow">&#8595;</div>
+
+        <div class="flow-box decision">health = 0 OR time = 0?</div>
+        <div class="flow-arrow">&#8595;</div>
+
+        <div class="flow-branch">
+          <div class="flow-branch-item">
+            <div class="flow-branch-label">Yes</div>
+            <div class="flow-box start-end" style="background:rgba(255,60,60,0.12); border-color:rgba(255,80,80,0.5); color:#ff8888;">&#x274C; Game Over</div>
+          </div>
+          <div class="flow-branch-item">
+            <div class="flow-branch-label">No</div>
+            <div class="flow-box">Continue playing &#8593;</div>
+          </div>
+        </div>
+        <div class="flow-arrow">&#8595;</div>
+
+        <div class="flow-box decision">All aliens served?</div>
+        <div class="flow-arrow">&#8595;</div>
+
+        <div class="flow-branch">
+          <div class="flow-branch-item">
+            <div class="flow-branch-label">Yes</div>
+            <div class="flow-box start-end">&#x2B50; You Win!</div>
+          </div>
+          <div class="flow-branch-item">
+            <div class="flow-branch-label">No</div>
+            <div class="flow-box">Keep serving &#8593;</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 REFLECTION -->
+    <section class="section-card" id="reflection">
+      <h2><span class="section-number">08</span> Designer Reflection</h2>
+      <p>
+        The hardest part of building Alien Cuisine Rush was designing the time and scoring system so the game felt fair but challenging. Early versions were too easy, which playtesting quickly revealed — we adjusted alien patience timers and added more customers per level to fix it.
+      </p>
+      <p>
+        This project taught us how important it is to actually test your game with other people. Things that seemed obvious to us as designers were confusing to players, like the food order system. Adding visual speech bubbles was a simple fix that made a big difference.
+      </p>
+      <p>
+        Our game uses core programming concepts — variables to track score, health, and time; if/then logic to check win and lose conditions; and loops to keep the game running every frame. These ideas show up in almost every game ever made, so learning them here is a solid foundation.
+      </p>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Created by DJ, Chadin &amp; Elijah &nbsp;&bull;&nbsp; Game Design &amp; Programming &nbsp;&bull;&nbsp; 2025</p>
+  </footer>
+
+</body>
+</html>
